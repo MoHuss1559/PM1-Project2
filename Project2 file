@@ -1,0 +1,241 @@
+//********************This is project2.cpp file************************
+//this is the implementation file called project2.cpp
+#include <iostream>
+#include "vectorheader.h"
+#include "matrixheader.h"
+//*****************YO MO INCLUDE YOUR TEMPLATED CLASS FOR IMAGES HERE*********************************************************
+using namespace std;
+
+int main() {
+    //  VECTOR TESTING 
+    cout << "Testing Vector:" << endl;
+    Vector<int> vec(5); // Vector of size 5
+
+    for (int i = 0; i < vec.size(); ++i) {
+        vec[i] = i + 1; // Fill with 1,2,3,4,5
+    }
+
+    cout << "Vector contents: ";
+    for (int i = 0; i < vec.size(); ++i) {
+        cout << vec[i] << " ";
+    }
+    cout << endl << endl;
+
+    //  MATRIX TESTING 
+    cout << "Test Matrix:" << endl;
+    Matrix<int> matA(2, 2); // 2x2 Matrix
+
+    matA.at(0, 0) = 1; matA.at(0, 1) = 2;
+    matA.at(1, 0) = 3; matA.at(1, 1) = 4;
+
+    cout << "Matrix A:" << endl;
+    matA.print();
+    cout << endl;
+
+    //  MATRIX ADDITION 
+    Matrix<int> matB(2, 2);
+    matB.at(0, 0) = 5; matB.at(0, 1) = 6;
+    matB.at(1, 0) = 7; matB.at(1, 1) = 8;
+
+    cout << "Matrix B:" << endl;
+    matB.print();
+    cout << endl;
+
+    Matrix<int> matSum = matA + matB;
+    cout << "Matrix A + B:" << endl;
+    matSum.print();
+    cout << endl;
+
+    //  MATRIX SUBTRACTION 
+    Matrix<int> matDiff = matA - matB;
+    cout << "Matrix A - B:" << endl;
+    matDiff.print();
+    cout << endl;
+
+    //  MATRIX SCALAR MULTIPLICATION 
+    Matrix<int> matScaled = matA * 2; // Multiply every element by some number
+    cout << "Matrix A * 2:" << endl;
+    matScaled.print();
+    cout << endl;
+
+    return 0;
+}
+
+//*******************************THIS IS THE VECTOR HEADER FILE***************************************
+#ifndef VECTOR_H
+#define VECTOR_H
+
+#include <iostream>
+#include <cassert>
+
+template <typename T>
+class Vector {
+private:
+    int length;
+    T* data;
+public:
+    // Constructor
+    Vector(int size) : length(size), data(new T[size]) {}
+
+    // Copy constructor
+    Vector(const Vector<T>& other) : length(other.length), data(new T[other.length]) {
+        for (int i = 0; i < length; ++i) {
+            data[i] = other.data[i];
+        }
+    }
+
+    // Copy assignment operator
+    Vector<T>& operator=(const Vector<T>& other) {
+        if (this != &other) {
+            delete[] data;
+            length = other.length;
+            data = new T[length];
+            for (int i = 0; i < length; ++i) {
+                data[i] = other.data[i];
+            }
+        }
+        return *this;
+    }
+
+    // Destructor
+    ~Vector() { delete[] data; }
+
+    // Accessors
+    T& operator[](int index) {
+        assert(index >= 0 && index < length);
+        return data[index];
+    }
+
+    const T& operator[](int index) const {
+        assert(index >= 0 && index < length);
+        return data[index];
+    }
+
+    T& at(int index) {
+        assert(index >= 0 && index < length);
+        return data[index];
+    }
+
+    const T& at(int index) const {
+        assert(index >= 0 && index < length);
+        return data[index];
+    }
+
+    int size() const { return length; }
+
+    // Addition
+    Vector<T> operator+(const Vector<T>& other) const {
+        assert(length == other.length);
+        Vector<T> result(length);
+        for (int i = 0; i < length; ++i) {
+            result[i] = data[i] + other[i];
+        }
+        return result;
+    }
+
+    // Subtraction
+    Vector<T> operator-(const Vector<T>& other) const {
+        assert(length == other.length);
+        Vector<T> result(length);
+        for (int i = 0; i < length; ++i) {
+            result[i] = data[i] - other[i];
+        }
+        return result;
+    }
+};
+
+#endif // VECTOR_H
+
+
+//*************************THIS IS THE MATRIX HEADER FILE************************
+#ifndef MATRIXHEADER_H
+#define MATRIXHEADER_H
+
+#include <iostream>
+#include <vector>
+#include "vectorheader.h"
+
+template <typename T>
+class Matrix {
+private:
+    int rows, cols;
+    std::vector<Vector<T>> data;
+
+public:
+    // Constructor for Matrix
+    Matrix(int rows, int cols) : rows(rows), cols(cols), data(rows, Vector<T>(cols)) {}
+
+    // Accessor for matrix element (non-const version)
+    T& at(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            std::cout << "Error: Matrix indices out of bounds!" << std::endl;
+            exit(1);
+        }
+        return data[row].at(col); // still using .at()
+    }
+
+    // Accessor for matrix element (const version)
+    const T& at(int row, int col) const {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            std::cout << "Error: Matrix indices out of bounds!" << std::endl;
+            exit(1);
+        }
+        return data[row].at(col); // still using .at()
+    }
+
+    // Print the matrix
+    void print() const {
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                std::cout << data[i].at(j) << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    // Operator overloading for addition (Matrix + Matrix)
+    Matrix<T> operator+(const Matrix<T>& other) const {
+        if (this->rows != other.rows || this->cols != other.cols) {
+            std::cout << "Error: Matrices dimensions do not match for addition!" << std::endl;
+            exit(1);
+        }
+        Matrix<T> result(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                result.at(i, j) = this->at(i, j) + other.at(i, j);
+            }
+        }
+        return result;
+    }
+
+    // Operator overloading for subtraction (Matrix - Matrix)
+    Matrix<T> operator-(const Matrix<T>& other) const {
+        if (this->rows != other.rows || this->cols != other.cols) {
+            std::cout << "Error: Matrices dimensions do not match for subtraction!" << std::endl;
+            exit(1);
+        }
+        Matrix<T> result(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                result.at(i, j) = this->at(i, j) - other.at(i, j);
+            }
+        }
+        return result;
+    }
+
+    // Operator overloading for scalar multiplication (Matrix * scalar)
+    Matrix<T> operator*(T scalar) const {
+        Matrix<T> result(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                result.at(i, j) = this->at(i, j) * scalar;
+            }
+        }
+        return result;
+    }
+
+    int numRows() const { return rows; }
+    int numCols() const { return cols; }
+};
+
+#endif
