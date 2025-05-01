@@ -152,42 +152,42 @@ public:
 #define MATRIXHEADER_H
 
 #include <iostream>
-#include <vector>
+#include <vector>  // Add this to include std::vector
 #include "vectorheader.h"
 
 template <typename T>
 class Matrix {
 private:
     int rows, cols;
-    std::vector<Vector<T>> data;
+    std::vector<Vector<T>> data;  // Use std::vector to store rows of vectors
 
 public:
     // Constructor for Matrix
     Matrix(int rows, int cols) : rows(rows), cols(cols), data(rows, Vector<T>(cols)) {}
 
-    // Accessor for matrix element 
+    // Accessor for matrix element (non-const)
     T& at(int row, int col) {
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             std::cout << "Error: Matrix indices out of bounds!" << std::endl;
-            exit(1);
+            exit(1);  // Exiting the program
         }
-        return data[row].at(col);
+        return data[row][col];  // Accessing the element using overloaded operator[]
     }
 
-    // Accessor for matrix element (const version)
-    const T& at(int row, int col) const {
+    // Accessor for matrix element (const version for const objects)
+    T at(int row, int col) const {  // const version
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             std::cout << "Error: Matrix indices out of bounds!" << std::endl;
             exit(1);
         }
-        return data[row].at(col); 
+        return data[row][col];  // Accessing the element using overloaded operator[]
     }
 
     // Print the matrix
     void print() const {
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                std::cout << data[i].at(j) << " ";
+                std::cout << data[i][j] << " ";  // Access using overloaded operator[]
             }
             std::cout << std::endl;
         }
@@ -233,10 +233,6 @@ public:
         }
         return result;
     }
-
-    int numRows() const { return rows; }
-    int numCols() const { return cols; }
 };
 
-#endif
-
+#endif // MATRIXHEADER_H
