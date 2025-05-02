@@ -4,14 +4,14 @@
 #include "matrix.h"
 #include <stdexcept>
 #include <algorithm>
-#include <vector>
+#include <cmath> // For std::floor
 
 class Image : public Matrix<float> {
 private:
     int channels;
 
 public:
-    // Constructor with dimensions and channels (default RGB)
+    // Constructor with dimension validation
     Image(size_t width, size_t height, int channels = 3)
         : Matrix<float>(height, width), channels(channels)
     {
@@ -23,54 +23,52 @@ public:
     // Getter for channels
     int getChannels() const { return channels; }
 
-    // Image scaling with value clamping (prevents overflow)
-    Image scale(float factor) const {
-        Image result(getCols(), getRows(), channels);
-        for (size_t i = 0; i < getRows(); ++i) {
-            for (size_t j = 0; j < getCols(); ++j) {
-                // Clamp values between 0.0f and 255.0f (typical image range)
-                result[i][j] = std::clamp((*this)[i][j] * factor, 0.0f, 255.0f);
-            }
-        }
-        return result;
-    }
-
-    // Resize image EXTRA CREDIT
+    // Improved Image Resize with bilinear interpolation (Extra Credit)
     Image resize(size_t new_width, size_t new_height) const {
         if (new_width == 0 || new_height == 0) {
             throw std::invalid_argument("New dimensions must be greater than 0");
         }
 
         Image result(new_width, new_height, channels);
-        float x_ratio = static_cast<float>(getCols() - 1) / (new_width - 1);
-        float y_ratio = static_cast<float>(getRows() - 1) / (new_height - 1);
+        float x_ratio = static_cast<float>(getCols()) / new_width;
+        float y_ratio = static_cast<float>(getRows()) / new_height;
 
-        for (size_t i = 0; i < new_height; i++) {
-            for (size_t j = 0; j < new_width; j++) {
-                float x = j * x_ratio;
-                float y = i * y_ratio;
-                
-                size_t x1 = static_cast<size_t>(x);
-                size_t y1 = static_cast<size_t>(y);
+        for (size_t y = 0; y < new_height; ++y) {
+            for (size_t x = 0; x < new_width; ++x) {
+                float gx = std::max(0.0f, std::floor(x * x_ratio));
+                float gy = std::max(0.0f, std::floor(y * y_ratio));
+                size_t x1 = static_cast<size_t>(gx);
+                size_t y1 = static_cast<size_t>(gy);
                 size_t x2 = std::min(x1 + 1, getCols() - 1);
                 size_t y2 = std::min(y1 + 1, getRows() - 1);
 
-                float x_diff = x - x1;
-                float y_diff = y - y1;
+                float dx = (x * x_ratio) - gx;
+                float dy = (y * y_ratio) - gy;
 
-                float a = (*this)[y1][x1] * (1 - x_diff) * (1 - y_diff);
-                float b = (*this)[y1][x2] * x_diff * (1 - y_diff);
-                float c = (*this)[y2][x1] * (1 - x_diff) * y_diff;
-                float d = (*this)[y2][x2] * x_diff * y_diff;
+                // Bilinear interpolation
+                float a = (*this)[y1][x1] * (1 - dx) * (1 - dy);
+                float b = (*this)[y1][x2] * dx * (1 - dy);
+                float c = (*this)[y2][x1] * (1 - dx) * dy;
+                float d = (*this)[y2][x2] * dx * dy;
 
-                result[i][j] = std::clamp(a + b + c + d, 0.0f, 255.0f);
+                result[y][x] = std::clamp(a + b + c + d, 0.0f, 255.0f);
             }
         }
-
         return result;
-    } //end of extra credit
+    }
 
-    // Image addition with channel compatibility check
+    // Image scaling with value clamping
+    Image scale(float factor) const {
+        Image result(getCols(), getRows(), channels);
+        for (size_t i = 0; i < getRows(); ++i) {
+            for (size_t j = 0; j < getCols(); ++j) {
+                result[i][j] = std::clamp((*this)[i][j] * factor, 0.0f, 255.0f);
+            }
+        }
+        return result;
+    }
+
+    // Image addition with bounds checking
     Image operator+(const Image& other) const {
         validateDimensions(other, "addition");
         Image result(getCols(), getRows(), channels);
@@ -82,7 +80,7 @@ public:
         return result;
     }
 
-    // Image subtraction with channel compatibility check
+    // Image subtraction with bounds checking
     Image operator-(const Image& other) const {
         validateDimensions(other, "subtraction");
         Image result(getCols(), getRows(), channels);
@@ -94,30 +92,14 @@ public:
         return result;
     }
 
-    // Element-wise multiplication
-    Image operator*(const Image& other) const {
-        validateDimensions(other, "element-wise multiplication");
-        Image result(getCols(), getRows(), channels);
-        for (size_t i = 0; i < getRows(); ++i) {
-            for (size_t j = 0; j < getCols(); ++j) {
-                result[i][j] = std::clamp((*this)[i][j] * other[i][j], 0.0f, 255.0f);
-            }
-        }
-        return result;
-    }
-
 private:
-    // Helper function to validate image dimensions and channels
-    void validateDimensions(const Image& other, const std::string& operation) const {
+    // Helper for dimension validation
+    void validateDimensions(const Image& other, const std::string& op) const {
         if (getRows() != other.getRows() || getCols() != other.getCols()) {
-            throw std::invalid_argument(
-                "Image dimensions must match for " + operation
-            );
+            throw std::invalid_argument("Image dimensions must match for " + op);
         }
         if (channels != other.channels) {
-            throw std::invalid_argument(
-                "Channel counts must match for " + operation
-            );
+            throw std::invalid_argument("Channel counts must match for " + op);
         }
     }
 };
