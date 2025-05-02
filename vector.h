@@ -2,7 +2,8 @@
 #define VECTOR_H
 
 #include <iostream>
-#include <stdexcept> // For std::out_of_range
+#include <stdexcept>
+#include <algorithm>
 
 template <typename T>
 class Vector {
@@ -35,7 +36,7 @@ public:
         return *this;
     }
 
-    // Accessors (with bounds checking)
+    // Accessors
     T& operator[](size_t index) {
         if (index >= length) throw std::out_of_range("Vector index out of range!");
         return data[index];
