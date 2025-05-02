@@ -1,3 +1,5 @@
+//this is the implementation file, main file, called project2.cpp
+
 //this is the implementation file called project2.cpp
 #include <iostream>
 #include "vectorheader.h"
@@ -83,3 +85,258 @@ int main() {
 
 
 }
+
+
+//************************************VECTOR HEADER**********************************
+#ifndef VECTOR_H
+#define VECTOR_H
+
+#include <iostream>
+#include <cassert>
+
+template <typename T>
+class Vector {
+private:
+    int length;
+    T* data;
+public:
+    // Constructor
+    Vector(int size) : length(size), data(new T[size]) {}
+
+    // Copy constructor
+    Vector(const Vector<T>& other) : length(other.length), data(new T[other.length]) {
+        for (int i = 0; i < length; ++i) {
+            data[i] = other.data[i];
+        }
+    }
+
+    // Copy assignment operator
+    Vector<T>& operator=(const Vector<T>& other) {
+        if (this != &other) {
+            delete[] data;
+            length = other.length;
+            data = new T[length];
+            for (int i = 0; i < length; ++i) {
+                data[i] = other.data[i];
+            }
+        }
+        return *this;
+    }
+
+    // Destructor
+    ~Vector() { delete[] data; }
+
+    // Accessors
+    T& operator[](int index) {
+        assert(index >= 0 && index < length);
+        return data[index];
+    }
+
+    const T& operator[](int index) const {
+        assert(index >= 0 && index < length);
+        return data[index];
+    }
+
+    T& at(int index) {
+        assert(index >= 0 && index < length);
+        return data[index];
+    }
+
+    const T& at(int index) const {
+        assert(index >= 0 && index < length);
+        return data[index];
+    }
+
+    int size() const { return length; }
+
+    // Addition
+    Vector<T> operator+(const Vector<T>& other) const {
+        assert(length == other.length);
+        Vector<T> result(length);
+        for (int i = 0; i < length; ++i) {
+            result[i] = data[i] + other[i];
+        }
+        return result;
+    }
+
+    // Subtraction
+    Vector<T> operator-(const Vector<T>& other) const {
+        assert(length == other.length);
+        Vector<T> result(length);
+        for (int i = 0; i < length; ++i) {
+            result[i] = data[i] - other[i];
+        }
+        return result;
+    }
+};
+
+#endif // VECTOR_H
+
+//******************************MATRIX HEADER******************************************
+
+#ifndef MATRIXHEADER_H
+#define MATRIXHEADER_H
+
+#include <iostream>
+#include <vector>
+#include "vectorheader.h"
+
+template <typename T>
+class Matrix {
+private:
+    int rows, cols;
+    std::vector<Vector<T>> data;
+
+public:
+    // Constructor for Matrix
+    Matrix(int rows, int cols) : rows(rows), cols(cols), data(rows, Vector<T>(cols)) {}
+
+    // Accessor for matrix element 
+    T& at(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            std::cout << "Error: Matrix indices out of bounds!" << std::endl;
+            exit(1);
+        }
+        return data[row].at(col);
+    }
+
+    // Accessor for matrix element (const version)
+    const T& at(int row, int col) const {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            std::cout << "Error: Matrix indices out of bounds!" << std::endl;
+            exit(1);
+        }
+        return data[row].at(col); 
+    }
+
+    // Print the matrix
+    void print() const {
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                std::cout << data[i].at(j) << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    // Operator overloading for addition (Matrix + Matrix)
+    Matrix<T> operator+(const Matrix<T>& other) const {
+        if (this->rows != other.rows || this->cols != other.cols) {
+            std::cout << "Error: Matrices dimensions do not match for addition!" << std::endl;
+            exit(1);
+        }
+        Matrix<T> result(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                result.at(i, j) = this->at(i, j) + other.at(i, j);
+            }
+        }
+        return result;
+    }
+
+    // Operator overloading for subtraction (Matrix - Matrix)
+    Matrix<T> operator-(const Matrix<T>& other) const {
+        if (this->rows != other.rows || this->cols != other.cols) {
+            std::cout << "Error: Matrices dimensions do not match for subtraction!" << std::endl;
+            exit(1);
+        }
+        Matrix<T> result(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                result.at(i, j) = this->at(i, j) - other.at(i, j);
+            }
+        }
+        return result;
+    }
+
+    // Operator overloading for scalar multiplication (Matrix * scalar)
+    Matrix<T> operator*(T scalar) const {
+        Matrix<T> result(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                result.at(i, j) = this->at(i, j) * scalar;
+            }
+        }
+        return result;
+    }
+
+    int numRows() const { return rows; }
+    int numCols() const { return cols; }
+
+    // Transpose EXTRA CREDIT*******************
+Matrix<T> transpose() const {
+    Matrix<T> result(this->cols, this->rows);
+    for (int i = 0; i < this->rows; ++i) {
+        for (int j = 0; j < this->cols; ++j) {
+            result.at(j, i) = this->at(i, j);
+        }
+    }
+    return result;
+}
+
+};
+
+#endif
+
+//*************************************IMAGE HEADER*************************************
+
+#ifndef IMAGEHEADER_H
+#define IMAGEHEADER_H
+
+#include <iostream>
+#include "matrixheader.h"
+
+template <typename T>
+class Image : public Matrix<T> {
+public:
+    // Inherit constructors
+    using Matrix<T>::Matrix;
+
+    // Scale the image by a scalar
+    void scale(T scalar) {
+        for (int i = 0; i < this->numRows(); ++i) {
+            for (int j = 0; j < this->numCols(); ++j) {
+                this->at(i, j) *= scalar;
+            }
+        }
+    }
+
+    // Element-wise addition
+    Image<T> operator+(const Image<T>& other) const {
+        Matrix<T> result = Matrix<T>::operator+(other);
+        return static_cast<Image<T>>(result);
+    }
+
+    // Element-wise subtraction
+    Image<T> operator-(const Image<T>& other) const {
+        Matrix<T> result = Matrix<T>::operator-(other);
+        return static_cast<Image<T>>(result);
+    }
+
+    // Scalar multiplication
+    Image<T> operator*(T scalar) const {
+        Matrix<T> result = Matrix<T>::operator*(scalar);
+        return static_cast<Image<T>>(result);
+    }
+
+    // Element-wise multiplication
+    Image<T> multiply(const Image<T>& other) const {
+        if (this->numRows() != other.numRows() || this->numCols() != other.numCols()) {
+            std::cerr << "Error: Image dimensions do not match for element-wise multiplication." << std::endl;
+            exit(1);
+        }
+
+        Image<T> result(this->numRows(), this->numCols());
+        for (int i = 0; i < this->numRows(); ++i) {
+            for (int j = 0; j < this->numCols(); ++j) {
+                result.at(i, j) = this->at(i, j) * other.at(i, j);
+            }
+        }
+        return result;
+    }
+
+    
+    
+};
+
+#endif // IMAGEHEADER_H
