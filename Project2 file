@@ -1,18 +1,18 @@
-//********************This is project2.cpp file************************
 //this is the implementation file called project2.cpp
 #include <iostream>
 #include "vectorheader.h"
 #include "matrixheader.h"
-//*****************YO MO INCLUDE YOUR TEMPLATED CLASS FOR IMAGES HERE*********************************************************
-using namespace std;
+#include "imageheader.h"
 
+using namespace std;
+//for all times "n" is referneced n just means another test number
 int main() {
-    //  VECTOR TESTING 
+    //*********************************VECTOR TESTING**************************
     cout << "Testing Vector:" << endl;
-    Vector<int> vec(5); // Vector of size 5
+    Vector<int> vec(5); // replace 5 with n for different test cases
 
     for (int i = 0; i < vec.size(); ++i) {
-        vec[i] = i + 1; // Fill with 1,2,3,4,5
+        vec[i] = i + 1; // Fill with 1,2,3, ..., n 
     }
 
     cout << "Vector contents: ";
@@ -21,9 +21,8 @@ int main() {
     }
     cout << endl << endl;
 
-    //  MATRIX TESTING 
-    cout << "Test Matrix:" << endl;
-    Matrix<int> matA(2, 2); // 2x2 Matrix
+    // *******************MATRIX TESTING*************************
+    cout << "=== MATRIX TESTING ===" << endl;    Matrix<int> matA(2, 2); // replace 2, 2 with n, n for test cases
 
     matA.at(0, 0) = 1; matA.at(0, 1) = 2;
     matA.at(1, 0) = 3; matA.at(1, 1) = 4;
@@ -32,7 +31,7 @@ int main() {
     matA.print();
     cout << endl;
 
-    //  MATRIX ADDITION 
+    // Matrix addition:
     Matrix<int> matB(2, 2);
     matB.at(0, 0) = 5; matB.at(0, 1) = 6;
     matB.at(1, 0) = 7; matB.at(1, 1) = 8;
@@ -46,193 +45,41 @@ int main() {
     matSum.print();
     cout << endl;
 
-    //  MATRIX SUBTRACTION 
+    // Matrix subtraction:
     Matrix<int> matDiff = matA - matB;
     cout << "Matrix A - B:" << endl;
     matDiff.print();
     cout << endl;
 
-    //  MATRIX SCALAR MULTIPLICATION 
-    Matrix<int> matScaled = matA * 2; // Multiply every element by some number
+    // Matrix scalar multiplication:
+    Matrix<int> matScaled = matA * 2; // Multiply every element by n (replace 2 with n)
     cout << "Matrix A * 2:" << endl;
     matScaled.print();
     cout << endl;
 
+    //************************IMAGE TESTING*******************************
+    cout << "=== IMAGE TESTING ===" << endl;
+    Image<int> imgA(2, 2);
+    imgA.at(0, 0) = 10; imgA.at(0, 1) = 20;
+    imgA.at(1, 0) = 30; imgA.at(1, 1) = 40;
+
+    cout << "Original Image A:" << endl;
+    imgA.print();
+
+    imgA.scale(2);
+    cout << "Scaled Image A * 2:" << endl;
+    imgA.print();
+
+    Image<int> imgB(2, 2);
+    imgB.at(0, 0) = 1; imgB.at(0, 1) = 2;
+    imgB.at(1, 0) = 3; imgB.at(1, 1) = 4;
+
+    Image<int> imgMult = imgA.multiply(imgB);
+    cout << "Element-wise A * B:" << endl;
+    imgMult.print();
+
+
     return 0;
+
+
 }
-
-//*******************************THIS IS THE VECTOR HEADER FILE***************************************
-#ifndef VECTOR_H
-#define VECTOR_H
-
-#include <iostream>
-#include <cassert>
-
-template <typename T>
-class Vector {
-private:
-    int length;
-    T* data;
-public:
-    // Constructor
-    Vector(int size) : length(size), data(new T[size]) {}
-
-    // Copy constructor
-    Vector(const Vector<T>& other) : length(other.length), data(new T[other.length]) {
-        for (int i = 0; i < length; ++i) {
-            data[i] = other.data[i];
-        }
-    }
-
-    // Copy assignment operator
-    Vector<T>& operator=(const Vector<T>& other) {
-        if (this != &other) {
-            delete[] data;
-            length = other.length;
-            data = new T[length];
-            for (int i = 0; i < length; ++i) {
-                data[i] = other.data[i];
-            }
-        }
-        return *this;
-    }
-
-    // Destructor
-    ~Vector() { delete[] data; }
-
-    // Accessors
-    T& operator[](int index) {
-        assert(index >= 0 && index < length);
-        return data[index];
-    }
-
-    const T& operator[](int index) const {
-        assert(index >= 0 && index < length);
-        return data[index];
-    }
-
-    T& at(int index) {
-        assert(index >= 0 && index < length);
-        return data[index];
-    }
-
-    const T& at(int index) const {
-        assert(index >= 0 && index < length);
-        return data[index];
-    }
-
-    int size() const { return length; }
-
-    // Addition
-    Vector<T> operator+(const Vector<T>& other) const {
-        assert(length == other.length);
-        Vector<T> result(length);
-        for (int i = 0; i < length; ++i) {
-            result[i] = data[i] + other[i];
-        }
-        return result;
-    }
-
-    // Subtraction
-    Vector<T> operator-(const Vector<T>& other) const {
-        assert(length == other.length);
-        Vector<T> result(length);
-        for (int i = 0; i < length; ++i) {
-            result[i] = data[i] - other[i];
-        }
-        return result;
-    }
-};
-
-#endif // VECTOR_H
-
-
-//*************************THIS IS THE MATRIX HEADER FILE************************
-#ifndef MATRIXHEADER_H
-#define MATRIXHEADER_H
-
-#include <iostream>
-#include <vector>  // Add this to include std::vector
-#include "vectorheader.h"
-
-template <typename T>
-class Matrix {
-private:
-    int rows, cols;
-    std::vector<Vector<T>> data;  // Use std::vector to store rows of vectors
-
-public:
-    // Constructor for Matrix
-    Matrix(int rows, int cols) : rows(rows), cols(cols), data(rows, Vector<T>(cols)) {}
-
-    // Accessor for matrix element (non-const)
-    T& at(int row, int col) {
-        if (row < 0 || row >= rows || col < 0 || col >= cols) {
-            std::cout << "Error: Matrix indices out of bounds!" << std::endl;
-            exit(1);  // Exiting the program
-        }
-        return data[row][col];  // Accessing the element using overloaded operator[]
-    }
-
-    // Accessor for matrix element (const version for const objects)
-    T at(int row, int col) const {  // const version
-        if (row < 0 || row >= rows || col < 0 || col >= cols) {
-            std::cout << "Error: Matrix indices out of bounds!" << std::endl;
-            exit(1);
-        }
-        return data[row][col];  // Accessing the element using overloaded operator[]
-    }
-
-    // Print the matrix
-    void print() const {
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
-                std::cout << data[i][j] << " ";  // Access using overloaded operator[]
-            }
-            std::cout << std::endl;
-        }
-    }
-
-    // Operator overloading for addition (Matrix + Matrix)
-    Matrix<T> operator+(const Matrix<T>& other) const {
-        if (this->rows != other.rows || this->cols != other.cols) {
-            std::cout << "Error: Matrices dimensions do not match for addition!" << std::endl;
-            exit(1);
-        }
-        Matrix<T> result(rows, cols);
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
-                result.at(i, j) = this->at(i, j) + other.at(i, j);
-            }
-        }
-        return result;
-    }
-
-    // Operator overloading for subtraction (Matrix - Matrix)
-    Matrix<T> operator-(const Matrix<T>& other) const {
-        if (this->rows != other.rows || this->cols != other.cols) {
-            std::cout << "Error: Matrices dimensions do not match for subtraction!" << std::endl;
-            exit(1);
-        }
-        Matrix<T> result(rows, cols);
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
-                result.at(i, j) = this->at(i, j) - other.at(i, j);
-            }
-        }
-        return result;
-    }
-
-    // Operator overloading for scalar multiplication (Matrix * scalar)
-    Matrix<T> operator*(T scalar) const {
-        Matrix<T> result(rows, cols);
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
-                result.at(i, j) = this->at(i, j) * scalar;
-            }
-        }
-        return result;
-    }
-};
-
-#endif // MATRIXHEADER_H
