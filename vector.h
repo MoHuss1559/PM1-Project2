@@ -13,15 +13,21 @@ private:
 
 public:
     // Constructor
-    explicit Vector(size_t size = 0) : length(size), data(new T[size]()) {}
+    explicit Vector(size_t size = 0) : length(size), data(size ? new T[size]() : nullptr) {}
 
     // Destructor
     ~Vector() { delete[] data; }
 
     // Copy Constructor
-    Vector(const Vector& other) : length(other.length), data(new T[other.length]) {
+    Vector(const Vector& other) : length(other.length), data(other.length ? new T[other.length] : nullptr) {
         for (size_t i = 0; i < length; ++i)
             data[i] = other.data[i];
+    }
+
+    // Move Constructor
+    Vector(Vector&& other) noexcept : length(other.length), data(other.data) {
+        other.length = 0;
+        other.data = nullptr;
     }
 
     // Copy Assignment
@@ -29,52 +35,44 @@ public:
         if (this != &other) {
             delete[] data;
             length = other.length;
-            data = new T[length];
+            data = length ? new T[length] : nullptr;
             for (size_t i = 0; i < length; ++i)
                 data[i] = other.data[i];
         }
         return *this;
     }
 
+    // Move Assignment
+    Vector& operator=(Vector&& other) noexcept {
+        if (this != &other) {
+            delete[] data;
+            length = other.length;
+            data = other.data;
+            other.length = 0;
+            other.data = nullptr;
+        }
+        return *this;
+    }
+
     // Accessors
     T& operator[](size_t index) {
-        if (index >= length) throw std::out_of_range("Vector index out of range!");
+        if (index >= length) throw std::out_of_range("Vector index out of range");
         return data[index];
     }
 
     const T& operator[](size_t index) const {
-        if (index >= length) throw std::out_of_range("Vector index out of range!");
+        if (index >= length) throw std::out_of_range("Vector index out of range");
         return data[index];
     }
 
     // Size query
     size_t size() const { return length; }
 
-    // Arithmetic operations
-    Vector operator+(const Vector& other) const {
-        if (length != other.length)
-            throw std::invalid_argument("Vector sizes must match for addition!");
-        Vector result(length);
-        for (size_t i = 0; i < length; ++i)
-            result[i] = data[i] + other[i];
-        return result;
-    }
-
-    Vector operator-(const Vector& other) const {
-        if (length != other.length)
-            throw std::invalid_argument("Vector sizes must match for subtraction!");
-        Vector result(length);
-        for (size_t i = 0; i < length; ++i)
-            result[i] = data[i] - other[i];
-        return result;
-    }
-
-    // Scalar multiplication
-    Vector operator*(T scalar) const {
-        Vector result(length);
-        for (size_t i = 0; i < length; ++i)
-            result[i] = data[i] * scalar;
-        return result;
+    // Clear memory
+    void clear() {
+        delete[] data;
+        data = nullptr;
+        length = 0;
     }
 };
 
