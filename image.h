@@ -23,7 +23,7 @@ public:
     // Getter for channels
     int getChannels() const { return channels; }
 
-    // Improved Image Resize with bilinear interpolation (Extra Credit)
+    // Image Resize with bilinear interpolation (Extra Credit)
     Image resize(size_t new_width, size_t new_height) const {
         if (new_width == 0 || new_height == 0) {
             throw std::invalid_argument("New dimensions must be greater than 0");
