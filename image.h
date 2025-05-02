@@ -35,7 +35,7 @@ public:
         return result;
     }
 
-    // Resize image to new dimensions using bilinear interpolation
+    // Resize image EXTRA CREDIT
     Image resize(size_t new_width, size_t new_height) const {
         if (new_width == 0 || new_height == 0) {
             throw std::invalid_argument("New dimensions must be greater than 0");
@@ -68,7 +68,7 @@ public:
         }
 
         return result;
-    }
+    } //end of extra credit
 
     // Image addition with channel compatibility check
     Image operator+(const Image& other) const {
