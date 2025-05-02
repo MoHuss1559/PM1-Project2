@@ -1,93 +1,103 @@
-#ifndef MATRIX_H
-#define MATRIX_H
+#ifndef MATRIXHEADER_H
+#define MATRIXHEADER_H
 
-#include "vector.h"
 #include <iostream>
+#include <vector>
+#include "vectorheader.h"
 
 template <typename T>
 class Matrix {
 private:
-    size_t rows, cols;
-    Vector<Vector<T>> data;
+    int rows, cols;
+    std::vector<Vector<T>> data;
 
 public:
-    // Constructor
-    Matrix(size_t rows, size_t cols) : rows(rows), cols(cols), data(rows) {
-        for (size_t i = 0; i < rows; ++i)
-            data[i] = Vector<T>(cols);
+    // Constructor for Matrix
+    Matrix(int rows, int cols) : rows(rows), cols(cols), data(rows, Vector<T>(cols)) {}
+
+    // Accessor for matrix element 
+    T& at(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            std::cout << "Error: Matrix indices out of bounds!" << std::endl;
+            exit(1);
+        }
+        return data[row].at(col);
     }
 
-    // Accessors (with bounds checking)
-    Vector<T>& operator[](size_t row) {
-        if (row >= rows) throw std::out_of_range("Matrix row out of range!");
-        return data[row];
+    // Accessor for matrix element (const version)
+    const T& at(int row, int col) const {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            std::cout << "Error: Matrix indices out of bounds!" << std::endl;
+            exit(1);
+        }
+        return data[row].at(col); 
     }
 
-    const Vector<T>& operator[](size_t row) const {
-        if (row >= rows) throw std::out_of_range("Matrix row out of range!");
-        return data[row];
-    }
-
-    // Matrix addition
-    Matrix operator+(const Matrix& other) const {
-        if (rows != other.rows || cols != other.cols)
-            throw std::invalid_argument("Matrix dimensions must match for addition!");
-        Matrix result(rows, cols);
-        for (size_t i = 0; i < rows; ++i)
-            for (size_t j = 0; j < cols; ++j)
-                result[i][j] = data[i][j] + other[i][j];
-        return result;
-    }
-
-    // Matrix subtraction
-    Matrix operator-(const Matrix& other) const {
-        if (rows != other.rows || cols != other.cols)
-            throw std::invalid_argument("Matrix dimensions must match for subtraction!");
-        Matrix result(rows, cols);
-        for (size_t i = 0; i < rows; ++i)
-            for (size_t j = 0; j < cols; ++j)
-                result[i][j] = data[i][j] - other[i][j];
-        return result;
-    }
-
-    // Scalar multiplication
-    Matrix operator*(T scalar) const {
-        Matrix result(rows, cols);
-        for (size_t i = 0; i < rows; ++i)
-            for (size_t j = 0; j < cols; ++j)
-                result[i][j] = data[i][j] * scalar;
-        return result;
-    }
-
-    // Matrix multiplication
-    Matrix operator*(const Matrix& other) const {
-        if (cols != other.rows)
-            throw std::invalid_argument("Matrix dimensions incompatible for multiplication!");
-        Matrix result(rows, other.cols);
-        for (size_t i = 0; i < rows; ++i)
-            for (size_t j = 0; j < other.cols; ++j)
-                for (size_t k = 0; k < cols; ++k)
-                    result[i][j] += data[i][k] * other[k][j];
-        return result;
-    }
-
-    // Transpose (Extra Credit)
-    Matrix transpose() const {
-        Matrix result(cols, rows);
-        for (size_t i = 0; i < rows; ++i)
-            for (size_t j = 0; j < cols; ++j)
-                result[j][i] = data[i][j];
-        return result;
-    }
-
-    // Print matrix (for debugging)
+    // Print the matrix
     void print() const {
-        for (size_t i = 0; i < rows; ++i) {
-            for (size_t j = 0; j < cols; ++j)
-                std::cout << data[i][j] << " ";
-            std::cout << "\n";
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                std::cout << data[i].at(j) << " ";
+            }
+            std::cout << std::endl;
         }
     }
+
+    // Operator overloading for addition (Matrix + Matrix)
+    Matrix<T> operator+(const Matrix<T>& other) const {
+        if (this->rows != other.rows || this->cols != other.cols) {
+            std::cout << "Error: Matrices dimensions do not match for addition!" << std::endl;
+            exit(1);
+        }
+        Matrix<T> result(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                result.at(i, j) = this->at(i, j) + other.at(i, j);
+            }
+        }
+        return result;
+    }
+
+    // Operator overloading for subtraction (Matrix - Matrix)
+    Matrix<T> operator-(const Matrix<T>& other) const {
+        if (this->rows != other.rows || this->cols != other.cols) {
+            std::cout << "Error: Matrices dimensions do not match for subtraction!" << std::endl;
+            exit(1);
+        }
+        Matrix<T> result(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                result.at(i, j) = this->at(i, j) - other.at(i, j);
+            }
+        }
+        return result;
+    }
+
+    // Operator overloading for scalar multiplication (Matrix * scalar)
+    Matrix<T> operator*(T scalar) const {
+        Matrix<T> result(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                result.at(i, j) = this->at(i, j) * scalar;
+            }
+        }
+        return result;
+    }
+
+    int numRows() const { return rows; }
+    int numCols() const { return cols; }
+
+    // Transpose EXTRA CREDIT*******************
+Matrix<T> transpose() const {
+    Matrix<T> result(this->cols, this->rows);
+    for (int i = 0; i < this->rows; ++i) {
+        for (int j = 0; j < this->cols; ++j) {
+            result.at(j, i) = this->at(i, j);
+        }
+    }
+    return result;
+}
+
 };
 
-#endif // MATRIX_H
+#endif
